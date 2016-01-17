@@ -1,0 +1,67 @@
+#!/usr/bin/env php
+<?php
+
+    // requires config file in the directory -- DONE
+    // somehow open us.txt -- DONE
+    // error-check (file_exists, is_readable, and more) -- DONE
+    // iterate over lines in us.txt (using fxns suggested in spec) -- DONE
+    // insert each line into places (database) w/ query fxn -- DONE
+    
+    // fopen, fgetcsv, fclose, CS50::query will be helpful
+    // fgetcsv has optional third argument that allows you to 
+    // override the default delimiter from , to something else
+    // empty places (database) until get code working perfectly
+    // by executing TRUNCATE places in SQL tab
+    
+    //require config.php
+    require ("../includes/config.php");
+    
+    //create variable to remember file
+    $file_name = $argv[1];
+    
+    //verify terminal execution
+    if ($argc != 2) {
+        print ("How to use: ./import file_name\n");
+        print ("In our case, file_name should be 'US.txt'.\n");
+        return 1;
+    }
+    
+    //verify that file exists (error-checking)
+    else if (!file_exists ($file_name)) {
+        print ("File '".$file_name."' does not exist.\n");
+        return 1;  
+    }
+    
+    //verify that file is readable (error-checking)
+    else if (!is_readable ($file_name)) {
+        print ("File '".$file_name."' is not readable.\n");
+        return 1;  
+    }
+    
+    else {
+        //open file_name (in our case, US.txt)
+        $file = fopen ($file_name, "r");
+    
+        //verify ability to open file
+        if (!$file) {
+            print ("Could not open '".$file_name."'\n");
+            return 1;  
+        }
+        
+        //import contents of file_name (in our case, US.txt) into places (database) line-by-line
+        while (!feof ($file)) {
+            //read current line
+            $line = fgetcsv ($file, 0, "\t");
+            //insert data from each line into places (database)
+            $insert = CS50::query ("INSERT INTO places (country_code, postal_code, place_name, admin_name1, admin_code1, admin_name2, 
+            admin_code2, admin_name3, admin_code3, latitude, longitude, accuracy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            $line[0], $line[1], $line[2], $line[3], $line[4], $line[5], $line[6], $line[7], $line[8], $line[9], $line[10], $line[11]);
+            //It would be a good idea to print a message or something if a line isn't successfully added to DB
+        }
+        return 0;
+    }
+    
+    //close US.txt
+    fclose ($file);
+    
+?>
